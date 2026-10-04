@@ -39,8 +39,8 @@ test = [
 docs = ["mkdocs>=1.6", "mkdocs-material>=9.5"]
 
 [project.urls]
-Homepage = "https://github.com/mattgivney/flask-tenants"
-Documentation = "https://github.com/mattgivney/flask-tenants"
+Homepage = "https://mgivneyjg.github.io/flask-tenants/"
+Documentation = "https://mgivneyjg.github.io/flask-tenants/"
 
 [project.scripts]
 flask-tenants = "flask_tenants.cli:main"
