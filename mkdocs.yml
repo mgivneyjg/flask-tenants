@@ -1,0 +1,69 @@
+site_name: flask-tenants
+site_description: Schema-per-tenant multi-tenancy for Flask and SQLAlchemy, on PostgreSQL.
+site_url: https://example.com/flask-tenants/
+repo_url: https://github.com/mattgivney/flask-tenants
+edit_uri: ""
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - content.code.copy
+    - content.code.annotate
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - Set up a new Flask app: getting-started.md
+      - Defining models: models.md
+      - Migrations: migrations.md
+      - Provisioning tenants: provisioning.md
+  - Guides:
+      - Resolving the tenant: resolvers.md
+      - Celery and background workers: workers.md
+      - Testing: testing.md
+      - Operations across tenants: operations.md
+      - Observability: observability.md
+      - Deployment: deployment.md
+  - Reference:
+      - API: api.md
+      - CLI: cli.md
+      - Configuration: configuration.md
+  - Design:
+      - Why it works this way: design.md
+      - Limits and known gaps: limits.md

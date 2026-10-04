@@ -1,0 +1,60 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "flask-tenants"
+version = "0.1.0"
+description = "Schema-per-tenant multi-tenancy for Flask and SQLAlchemy, on PostgreSQL."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Matt Givney" }]
+keywords = ["flask", "sqlalchemy", "postgresql", "multi-tenancy", "saas"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Framework :: Flask",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Database",
+]
+
+dependencies = [
+  "SQLAlchemy>=2.0",
+  "alembic>=1.13",
+]
+
+[project.optional-dependencies]
+flask = ["Flask>=3.0"]
+cli = ["click>=8.1"]
+test = [
+  "pytest>=8.0",
+  "psycopg[binary]>=3.1",
+  "Flask>=3.0",
+  "click>=8.1",
+]
+docs = ["mkdocs>=1.6", "mkdocs-material>=9.5"]
+
+[project.urls]
+Homepage = "https://github.com/mattgivney/flask-tenants"
+Documentation = "https://github.com/mattgivney/flask-tenants"
+
+[project.scripts]
+flask-tenants = "flask_tenants.cli:main"
+
+[project.entry-points.pytest11]
+flask_tenants = "flask_tenants.testing"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/flask_tenants"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["tenancy: tests that require a live PostgreSQL database"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
