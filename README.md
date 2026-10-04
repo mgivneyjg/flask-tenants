@@ -7,6 +7,9 @@ does — schema isolation, request routing, the shared/tenant model split, and
 per-tenant migrations — rebuilt as a reusable Flask extension with a
 framework-agnostic core.
 
+You can [read the documentation here](https://mgivneyjg.github.io/flask-tenants/).
+
+
 ```python
 from flask_tenants import TenantManager, tenant_context
 
