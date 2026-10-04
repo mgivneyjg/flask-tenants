@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "flask_tenants"
+name = "flask-tenants"
 dynamic = ["version"]
 description = "Schema-per-tenant multi-tenancy for Flask and SQLAlchemy, on PostgreSQL."
 readme = "README.md"
