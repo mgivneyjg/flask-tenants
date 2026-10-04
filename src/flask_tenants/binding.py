@@ -41,10 +41,11 @@ from __future__ import annotations
 
 import logging
 import warnings
+from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any, Iterator
+from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import Table, event, text
+from sqlalchemy import Table, event
 from sqlalchemy.orm import ORMExecuteState, Session, sessionmaker
 from sqlalchemy.sql import visitors
 
@@ -177,14 +178,14 @@ class SchemaBinder:
         # `after_begin` has already run and this is where the binding lands.
         self._apply(state.session, state.session.connection(), binding)
 
-    def _on_after_begin(self, session: Session, transaction: Any, connection: "Connection") -> None:
+    def _on_after_begin(self, session: Session, transaction: Any, connection: Connection) -> None:
         """Bind the connection as soon as its transaction opens."""
         binding = current_binding()
         if binding is None:
             return
         self._apply(session, connection, binding)
 
-    def _apply(self, session: Session, connection: "Connection", binding: Binding) -> None:
+    def _apply(self, session: Session, connection: Connection, binding: Binding) -> None:
         """Bind a connection to a tenant. Idempotent within one transaction.
 
         Both mechanisms are set here and nowhere else. That is what "chokepoint"
@@ -212,7 +213,8 @@ class SchemaBinder:
 
         # Identifiers cannot be bound parameters, so this is interpolated --
         # which is why every name passes through `quote_identifier` first.
-        connection.exec_driver_sql(f"SET LOCAL search_path TO {self._search_path_for(binding)}")
+        path = self._search_path_for(binding)
+        connection.exec_driver_sql(f"SET LOCAL search_path TO {path}")
 
     def _search_path_for(self, binding: Binding) -> str:
         """Build a validated, quoted search_path for a binding."""
@@ -250,7 +252,7 @@ class SchemaBinder:
     # -- Core escape hatch ------------------------------------------------
 
     @contextmanager
-    def connection(self, engine: "Engine", binding: Binding | None = None) -> Iterator["Connection"]:
+    def connection(self, engine: Engine, binding: Binding | None = None) -> Iterator[Connection]:
         """Open a Core connection correctly bound to a tenant.
 
         For work outside a Session. Opens an explicit transaction, which is what
@@ -265,7 +267,8 @@ class SchemaBinder:
             conn = conn.execution_options(schema_translate_map=self.translate_map(binding))
             with conn.begin():
                 if self.set_search_path:
-                    conn.exec_driver_sql(f"SET LOCAL search_path TO {self._search_path_for(binding)}")
+                    path = self._search_path_for(binding)
+                    conn.exec_driver_sql(f"SET LOCAL search_path TO {path}")
                 yield conn
 
 
@@ -293,12 +296,16 @@ def _statement_touches_tenant(state: ORMExecuteState, tenant_token: str) -> bool
         for element in visitors.iterate(statement, {"column_collections": False}):
             if isinstance(element, Table) and element.schema == tenant_token:
                 return True
-    except Exception:  # pragma: no cover - never let introspection break a query
+    except Exception:  # noqa: BLE001  # pragma: no cover
+        # Deliberately broad. This function only decides whether to raise a
+        # *better* error message; if walking the statement tree ever fails on
+        # some construct, the query itself must still run. Narrowing this would
+        # trade a clear failure for an obscure one.
         return False
     return False
 
 
-def warn_if_untracked(engine: "Engine") -> None:
+def warn_if_untracked(engine: Engine) -> None:
     """Warn when a raw connection runs in autocommit with a tenant active.
 
     The Q13 gap made audible. Attach in development; it costs a check per

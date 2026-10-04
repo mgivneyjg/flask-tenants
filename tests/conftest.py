@@ -17,7 +17,7 @@ def engine():
     try:
         with eng.connect() as conn:
             conn.execute(text("SELECT 1"))
-    except Exception as exc:  # pragma: no cover
+    except Exception as exc:  # noqa: BLE001 - any connection failure should skip
         pytest.skip(f"PostgreSQL not reachable at {DATABASE_URL}: {exc}")
     yield eng
     eng.dispose()

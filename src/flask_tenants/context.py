@@ -25,9 +25,10 @@ differ and get conflated constantly:
 from __future__ import annotations
 
 import contextlib
+from collections.abc import Iterator
 from contextvars import ContextVar, Token
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Iterator
+from typing import TYPE_CHECKING, Any
 
 from .errors import NoActiveTenantError
 
@@ -50,7 +51,7 @@ class Binding:
     schema: str
     """The real PostgreSQL schema that tenant-scoped tables resolve to."""
 
-    tenant: "TenantProtocol | None" = None
+    tenant: TenantProtocol | None = None
     """The application's tenant object, when one was supplied."""
 
     is_public: bool = False
@@ -85,7 +86,7 @@ def require_binding() -> Binding:
     return binding
 
 
-def current_tenant() -> "TenantProtocol | None":
+def current_tenant() -> TenantProtocol | None:
     """Return the active tenant object, or ``None``.
 
     Returns ``None`` both when nothing is active and when the active binding is
@@ -163,7 +164,7 @@ def capture() -> Any | None:
 
 
 @contextlib.contextmanager
-def tenant_context(tenant: "TenantProtocol") -> Iterator[Binding]:
+def tenant_context(tenant: TenantProtocol) -> Iterator[Binding]:
     """Activate a tenant for the duration of the block.
 
     Takes a tenant *object* -- anything satisfying

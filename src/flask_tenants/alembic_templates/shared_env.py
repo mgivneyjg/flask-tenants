@@ -8,7 +8,6 @@ This environment owns one linear history for the tables that exist once, in
 """
 
 from alembic import context
-
 from myapp.models import bases  # <-- your make_bases() result
 
 target_metadata = bases.shared_metadata

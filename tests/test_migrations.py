@@ -32,7 +32,7 @@ class Widget(BASES.tenant):
 
 TENANTS = [SimpleTenant.for_id(f"mig{i}") for i in range(3)]
 
-SHARED_ENV = '''
+SHARED_ENV = """
 from alembic import context
 from sqlalchemy import MetaData
 
@@ -45,9 +45,9 @@ with connectable.connect() as connection:
                       version_table_schema="public", include_schemas=False)
     with context.begin_transaction():
         context.run_migrations()
-'''
+"""
 
-TENANT_ENV = '''
+TENANT_ENV = """
 from alembic import context
 from flask_tenants.schema import quote_identifier
 from tests.test_migrations import BASES
@@ -71,7 +71,7 @@ with connectable.connect() as connection:
     with context.begin_transaction():
         connection.exec_driver_sql(f"SET LOCAL search_path TO {quote_identifier(schema)}")
         context.run_migrations()
-'''
+"""
 
 REVISION_ONE = '''
 """create widgets"""
@@ -136,9 +136,7 @@ def tree():
 def runner(engine, tree):
     registry = StaticRegistry(TENANTS)
     Sm = sessionmaker(engine)
-    manager = TenantManager(
-        engine=engine, session_factory=Sm, bases=BASES, registry=registry
-    )
+    manager = TenantManager(engine=engine, session_factory=Sm, bases=BASES, registry=registry)
 
     tenant_cfg = Config()
     tenant_cfg.set_main_option("script_location", str(tree / "tenant"))
@@ -148,26 +146,29 @@ def runner(engine, tree):
 
     with engine.begin() as conn:
         for tenant in TENANTS:
-            conn.execute(text(f"DROP SCHEMA IF EXISTS {quote_identifier(tenant.schema_name)} CASCADE"))
+            schema = quote_identifier(tenant.schema_name)
+            conn.execute(text(f"DROP SCHEMA IF EXISTS {schema} CASCADE"))
             conn.execute(text(f"CREATE SCHEMA {quote_identifier(tenant.schema_name)}"))
 
     yield manager, run
 
     with engine.begin() as conn:
         for tenant in TENANTS:
-            conn.execute(text(f"DROP SCHEMA IF EXISTS {quote_identifier(tenant.schema_name)} CASCADE"))
+            schema = quote_identifier(tenant.schema_name)
+            conn.execute(text(f"DROP SCHEMA IF EXISTS {schema} CASCADE"))
 
 
 @pytest.mark.tenancy
 def test_upgrade_all_brings_every_tenant_to_head(runner, engine):
-    manager, run = runner
+    _, run = runner
     result = run.upgrade_all()
     assert result.all_ok, [r.error for r in result.failed]
     assert len(result.succeeded) == len(TENANTS)
 
     inspector = inspect(engine)
     for tenant in TENANTS:
-        columns = {c["name"] for c in inspector.get_columns("mig_widgets", schema=tenant.schema_name)}
+        cols = inspector.get_columns("mig_widgets", schema=tenant.schema_name)
+        columns = {c["name"] for c in cols}
         assert columns == {"id", "name", "colour"}
 
 
@@ -204,13 +205,14 @@ def test_status_reports_an_unmigrated_tenant(runner, engine):
         assert statuses["migfresh"].current is None
     finally:
         with engine.begin() as conn:
-            conn.execute(text(f"DROP SCHEMA IF EXISTS {quote_identifier(fresh.schema_name)} CASCADE"))
+            schema = quote_identifier(fresh.schema_name)
+            conn.execute(text(f"DROP SCHEMA IF EXISTS {schema} CASCADE"))
 
 
 @pytest.mark.tenancy
 def test_a_failing_tenant_stops_the_run_and_reports_the_rest(runner, engine):
     """Decision Q10: stop at the first failure, and say what was not attempted."""
-    manager, run = runner
+    _, run = runner
     broken = SimpleTenant.for_id("migbroken")
     # No schema created, so the upgrade fails.
     targets = [TENANTS[0], broken, TENANTS[2]]
@@ -224,7 +226,7 @@ def test_a_failing_tenant_stops_the_run_and_reports_the_rest(runner, engine):
 
 @pytest.mark.tenancy
 def test_continue_on_error_covers_the_rest(runner):
-    manager, run = runner
+    _, run = runner
     broken = SimpleTenant.for_id("migbroken2")
     targets = [TENANTS[0], broken, TENANTS[2]]
 

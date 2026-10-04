@@ -7,9 +7,6 @@ sharpest edge lives.
 
 from __future__ import annotations
 
-import pathlib
-import shutil
-import tempfile
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
@@ -21,7 +18,6 @@ from flask_tenants import (
     DomainResolver,
     FlaskTenants,
     HeaderResolver,
-    SQLAlchemyRegistry,
     StaticRegistry,
     SubdomainResolver,
     TenantManager,
@@ -30,13 +26,17 @@ from flask_tenants import (
     current_tenant,
     for_each_tenant,
     make_bases,
-    provision_tenant,
     restore_into,
     tenant_required,
 )
-from flask_tenants.errors import TenantNotReadyError, UnknownTenantError
+from flask_tenants.errors import NoActiveTenantError, TenantNotReadyError, UnknownTenantError
 from flask_tenants.models import SimpleTenant
-from flask_tenants.testing import assert_no_leak, create_test_schemas, drop_test_schemas, make_leak_probe
+from flask_tenants.testing import (
+    assert_no_leak,
+    create_test_schemas,
+    drop_test_schemas,
+    make_leak_probe,
+)
 
 BASES = make_bases()
 
@@ -56,7 +56,7 @@ class Patient(BASES.tenant):
     org_id: Mapped[int | None] = mapped_column(
         ForeignKey(Organization.__table__.c.id), nullable=True
     )
-    org: Mapped["Organization | None"] = relationship()
+    org: Mapped[Organization | None] = relationship()
 
 
 ACME = SimpleTenant.for_id("e2eacme")
@@ -118,7 +118,8 @@ def test_subdomain_resolution(seeded):
 
     client = app.test_client()
     assert client.get("/who", base_url="http://e2eacme.example.test").json == {"tenant": "e2eacme"}
-    assert client.get("/who", base_url="http://e2eglobex.example.test").json == {"tenant": "e2eglobex"}
+    globex = client.get("/who", base_url="http://e2eglobex.example.test")
+    assert globex.json == {"tenant": "e2eglobex"}
 
 
 def test_request_scoped_queries_are_isolated(seeded):
@@ -170,7 +171,7 @@ def test_tenant_required_rejects_an_unresolved_request(seeded):
     def secret():  # pragma: no cover
         return "never"
 
-    with pytest.raises(Exception):
+    with pytest.raises(NoActiveTenantError, match="requires a tenant"):
         app.test_client().get("/secret", base_url="http://www.example.test")
 
 
@@ -178,9 +179,8 @@ def test_unknown_and_unready_tenants_are_refused(seeded):
     manager, _ = seeded
     with pytest.raises(UnknownTenantError):
         manager.registry.require("nope")
-    with pytest.raises(TenantNotReadyError):
-        with manager.tenant_context(PENDING):  # pragma: no cover
-            pass
+    with pytest.raises(TenantNotReadyError), manager.tenant_context(PENDING):
+        pass  # pragma: no cover -- activation raises before the body runs
 
 
 def test_context_unwinds_even_when_the_view_raises(seeded):
@@ -237,9 +237,7 @@ def test_for_each_tenant_reports_what_it_skipped(seeded):
     def explode(tenant):
         raise ValueError("nope")
 
-    result = for_each_tenant(
-        manager, explode, tenants=[ACME, GLOBEX], continue_on_error=False
-    )
+    result = for_each_tenant(manager, explode, tenants=[ACME, GLOBEX], continue_on_error=False)
     assert result.stopped_early
     assert len(result.failed) == 1
     assert len(result.skipped) == 1
@@ -282,16 +280,14 @@ def test_tenant_crosses_a_simulated_process_boundary(seeded):
     assert headers == {"flask_tenants_tenant": "e2eacme"}
 
     # ... message travels to a worker with no context of its own ...
-    with restore_into(manager, headers):
-        with Sm() as session:
-            assert session.execute(select(Patient.label)).scalars().one() == "sentinel::e2eacme"
+    with restore_into(manager, headers), Sm() as session:
+        assert session.execute(select(Patient.label)).scalars().one() == "sentinel::e2eacme"
 
 
 def test_a_message_with_no_tenant_restores_the_public_context(seeded):
     manager, Sm = seeded
-    with restore_into(manager, {}):
-        with Sm() as session:
-            assert session.execute(select(Organization.name)).scalars().all() == []
+    with restore_into(manager, {}), Sm() as session:
+        assert session.execute(select(Organization.name)).scalars().all() == []
 
 
 # -- the leak probe shipped to users --------------------------------------

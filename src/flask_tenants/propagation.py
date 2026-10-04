@@ -22,7 +22,8 @@ propagation is the safety net for when someone forgets.
 from __future__ import annotations
 
 import functools
-from typing import TYPE_CHECKING, Any, Callable, TypeVar
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from .context import capture, current_tenant_key
 
@@ -41,7 +42,7 @@ def capture_headers() -> dict[str, Any]:
     return {TENANT_HEADER: key} if key is not None else {}
 
 
-def restore_into(manager: "TenantManager", headers: dict[str, Any] | None):
+def restore_into(manager: TenantManager, headers: dict[str, Any] | None):
     """Context manager re-entering the tenant a message was published under.
 
     .. code-block:: python
@@ -56,7 +57,7 @@ def restore_into(manager: "TenantManager", headers: dict[str, Any] | None):
     return manager.restore(key)
 
 
-def with_tenant(manager: "TenantManager", key_arg: str = "tenant_key") -> Callable[[F], F]:
+def with_tenant(manager: TenantManager, key_arg: str = "tenant_key") -> Callable[[F], F]:
     """Decorator entering a tenant context from a named keyword argument.
 
     For the explicit style -- the tenant is part of the task's signature, so
@@ -86,7 +87,7 @@ def with_tenant(manager: "TenantManager", key_arg: str = "tenant_key") -> Callab
     return decorator
 
 
-def celery_signal_handlers(manager: "TenantManager") -> dict[str, Callable[..., Any]]:
+def celery_signal_handlers(manager: TenantManager) -> dict[str, Callable[..., Any]]:
     """Celery handlers implementing header propagation.
 
     Returned rather than registered, so this package never imports Celery.

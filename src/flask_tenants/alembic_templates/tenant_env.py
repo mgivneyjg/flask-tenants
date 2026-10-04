@@ -27,11 +27,10 @@ bare.
 """
 
 from alembic import context
+from myapp.models import bases  # <-- your make_bases() result
 
 from flask_tenants.migrations import strip_tenant_schema
 from flask_tenants.schema import quote_identifier
-
-from myapp.models import bases  # <-- your make_bases() result
 
 target_metadata = bases.tenant_metadata
 config = context.config
@@ -52,9 +51,7 @@ def run_migrations_online() -> None:
         )
 
     with connectable.connect() as connection:
-        connection = connection.execution_options(
-            schema_translate_map={TENANT_TOKEN: schema}
-        )
+        connection = connection.execution_options(schema_translate_map={TENANT_TOKEN: schema})
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
@@ -67,9 +64,7 @@ def run_migrations_online() -> None:
         with context.begin_transaction():
             # This is what places the DDL. SET LOCAL, so it reverts with the
             # transaction whether that commits or rolls back.
-            connection.exec_driver_sql(
-                f"SET LOCAL search_path TO {quote_identifier(schema)}"
-            )
+            connection.exec_driver_sql(f"SET LOCAL search_path TO {quote_identifier(schema)}")
             context.run_migrations()
 
 

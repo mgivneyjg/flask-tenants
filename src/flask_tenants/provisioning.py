@@ -21,8 +21,9 @@ request. Where it runs is an application decision.
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import text
 
@@ -75,10 +76,10 @@ def create_schema(connection: Any, schema_name: str) -> bool:
 
 
 def provision_tenant(
-    manager: "TenantManager",
+    manager: TenantManager,
     tenant: TenantProtocol,
     *,
-    runner: "MigrationRunner | None" = None,
+    runner: MigrationRunner | None = None,
     on_state_change: Callable[[TenantProtocol, TenantState], None] | None = None,
 ) -> ProvisionResult:
     """Build a tenant's schema and bring it to the latest revision.

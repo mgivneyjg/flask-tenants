@@ -22,7 +22,8 @@ obligation the others do not -- see its docstring.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
+from typing import Any
 
 
 class TenantResolver(ABC):

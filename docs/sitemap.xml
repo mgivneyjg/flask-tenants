@@ -1,67 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://example.com/flask-tenants/</loc>
+         <loc>https://mgivneyjg.github.io/flask-tenants/</loc>
          <lastmod>2026-10-04</lastmod>
     </url>
     <url>
-         <loc>https://example.com/flask-tenants/api/</loc>
+         <loc>https://mgivneyjg.github.io/flask-tenants/api/</loc>
          <lastmod>2026-10-04</lastmod>
     </url>
     <url>
-         <loc>https://example.com/flask-tenants/cli/</loc>
+         <loc>https://mgivneyjg.github.io/flask-tenants/cli/</loc>
          <lastmod>2026-10-04</lastmod>
     </url>
     <url>
-         <loc>https://example.com/flask-tenants/configuration/</loc>
+         <loc>https://mgivneyjg.github.io/flask-tenants/configuration/</loc>
          <lastmod>2026-10-04</lastmod>
     </url>
     <url>
-         <loc>https://example.com/flask-tenants/deployment/</loc>
+         <loc>https://mgivneyjg.github.io/flask-tenants/deployment/</loc>
          <lastmod>2026-10-04</lastmod>
     </url>
     <url>
-         <loc>https://example.com/flask-tenants/design/</loc>
+         <loc>https://mgivneyjg.github.io/flask-tenants/design/</loc>
          <lastmod>2026-10-04</lastmod>
     </url>
     <url>
-         <loc>https://example.com/flask-tenants/getting-started/</loc>
+         <loc>https://mgivneyjg.github.io/flask-tenants/getting-started/</loc>
          <lastmod>2026-10-04</lastmod>
     </url>
     <url>
-         <loc>https://example.com/flask-tenants/limits/</loc>
+         <loc>https://mgivneyjg.github.io/flask-tenants/limits/</loc>
          <lastmod>2026-10-04</lastmod>
     </url>
     <url>
-         <loc>https://example.com/flask-tenants/migrations/</loc>
+         <loc>https://mgivneyjg.github.io/flask-tenants/migrations/</loc>
          <lastmod>2026-10-04</lastmod>
     </url>
     <url>
-         <loc>https://example.com/flask-tenants/models/</loc>
+         <loc>https://mgivneyjg.github.io/flask-tenants/models/</loc>
          <lastmod>2026-10-04</lastmod>
     </url>
     <url>
-         <loc>https://example.com/flask-tenants/observability/</loc>
+         <loc>https://mgivneyjg.github.io/flask-tenants/observability/</loc>
          <lastmod>2026-10-04</lastmod>
     </url>
     <url>
-         <loc>https://example.com/flask-tenants/operations/</loc>
+         <loc>https://mgivneyjg.github.io/flask-tenants/operations/</loc>
          <lastmod>2026-10-04</lastmod>
     </url>
     <url>
-         <loc>https://example.com/flask-tenants/provisioning/</loc>
+         <loc>https://mgivneyjg.github.io/flask-tenants/provisioning/</loc>
          <lastmod>2026-10-04</lastmod>
     </url>
     <url>
-         <loc>https://example.com/flask-tenants/resolvers/</loc>
+         <loc>https://mgivneyjg.github.io/flask-tenants/resolvers/</loc>
          <lastmod>2026-10-04</lastmod>
     </url>
     <url>
-         <loc>https://example.com/flask-tenants/testing/</loc>
+         <loc>https://mgivneyjg.github.io/flask-tenants/testing/</loc>
          <lastmod>2026-10-04</lastmod>
     </url>
     <url>
-         <loc>https://example.com/flask-tenants/workers/</loc>
+         <loc>https://mgivneyjg.github.io/flask-tenants/workers/</loc>
          <lastmod>2026-10-04</lastmod>
     </url>
 </urlset>

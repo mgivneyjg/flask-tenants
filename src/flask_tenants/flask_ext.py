@@ -9,8 +9,9 @@ belongs in the core instead, or you end up with two code paths that drift.
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from flask import Flask, current_app, g, request
 
@@ -46,7 +47,7 @@ class FlaskTenants:
 
     def __init__(
         self,
-        manager: "TenantManager | None" = None,
+        manager: TenantManager | None = None,
         app: Flask | None = None,
         *,
         strict_routes: bool = False,
@@ -56,7 +57,7 @@ class FlaskTenants:
         if app is not None:
             self.init_app(app)
 
-    def init_app(self, app: Flask, manager: "TenantManager | None" = None) -> None:
+    def init_app(self, app: Flask, manager: TenantManager | None = None) -> None:
         """Register the request hooks."""
         manager = manager or self.manager
         if manager is None:

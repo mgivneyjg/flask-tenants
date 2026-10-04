@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "flask-tenants"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Schema-per-tenant multi-tenancy for Flask and SQLAlchemy, on PostgreSQL."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -37,6 +37,11 @@ test = [
   "click>=8.1",
 ]
 docs = ["mkdocs>=1.6", "mkdocs-material>=9.5"]
+dev = [
+  "flask-tenants[flask,cli,test,docs]",
+  "ruff>=0.6",
+  "twine>=5.1",
+]
 
 [project.urls]
 Homepage = "https://mgivneyjg.github.io/flask-tenants/"
@@ -48,8 +53,23 @@ flask-tenants = "flask_tenants.cli:main"
 [project.entry-points.pytest11]
 flask_tenants = "flask_tenants.testing"
 
+[tool.hatch.version]
+path = "src/flask_tenants/__init__.py"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/flask_tenants"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "src/flask_tenants",
+  "tests",
+  "docsrc",
+  "examples",
+  "mkdocs.yml",
+  "README.md",
+  "LICENSE",
+  "Makefile",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -58,3 +78,24 @@ markers = ["tenancy: tests that require a live PostgreSQL database"]
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+
+# Selected explicitly rather than relying on defaults: ruff's default rule set
+# widens between releases, and `make release` gates on lint. A deterministic
+# set means a ruff upgrade never turns a green release red on its own.
+[tool.ruff.lint]
+select = [
+  "E", "W",    # pycodestyle
+  "F",         # pyflakes
+  "I",         # import sorting
+  "UP",        # pyupgrade
+  "B",         # bugbear
+  "C4",        # comprehensions
+  "SIM",       # simplify
+  "BLE",       # blind except
+  "RUF",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Alembic templates are copied into user projects and import from `myapp`,
+# which does not exist here.
+"src/flask_tenants/alembic_templates/*" = ["F401", "E402", "I001"]

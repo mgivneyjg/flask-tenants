@@ -52,7 +52,8 @@ def bound(engine):
     with engine.begin() as conn:
         BASES.shared_metadata.create_all(conn)
         for tenant in (ACME, GLOBEX):
-            conn.execute(text(f"DROP SCHEMA IF EXISTS {quote_identifier(tenant.schema_name)} CASCADE"))
+            schema = quote_identifier(tenant.schema_name)
+            conn.execute(text(f"DROP SCHEMA IF EXISTS {schema} CASCADE"))
             conn.execute(text(f"CREATE SCHEMA {quote_identifier(tenant.schema_name)}"))
             tenant_conn = conn.execution_options(
                 schema_translate_map={"tenant": tenant.schema_name}
@@ -69,7 +70,8 @@ def bound(engine):
     binder.uninstall(Sm)
     with engine.begin() as conn:
         for tenant in (ACME, GLOBEX):
-            conn.execute(text(f"DROP SCHEMA IF EXISTS {quote_identifier(tenant.schema_name)} CASCADE"))
+            schema = quote_identifier(tenant.schema_name)
+            conn.execute(text(f"DROP SCHEMA IF EXISTS {schema} CASCADE"))
         BASES.shared_metadata.drop_all(conn)
 
 
@@ -121,10 +123,9 @@ def test_search_path_reverts_after_an_exception(bound, engine):
     miss, which is precisely why the reset is Postgres's job here.
     """
     _, Sm = bound
-    with pytest.raises(RuntimeError):
-        with tenant_context(ACME), Sm() as session:
-            session.execute(select(Note.body)).scalars().all()
-            raise RuntimeError("boom")
+    with pytest.raises(RuntimeError), tenant_context(ACME), Sm() as session:
+        session.execute(select(Note.body)).scalars().all()
+        raise RuntimeError("boom")
 
     with engine.connect() as conn:
         path = conn.execute(text("SHOW search_path")).scalar()
@@ -138,9 +139,8 @@ def test_search_path_reverts_after_an_exception(bound, engine):
 def test_tenant_query_with_no_tenant_raises(bound):
     """Q5: no silent fallback to public."""
     _, Sm = bound
-    with Sm() as session:
-        with pytest.raises(NoActiveTenantError):
-            session.execute(select(Note.body)).scalars().all()
+    with Sm() as session, pytest.raises(NoActiveTenantError):
+        session.execute(select(Note.body)).scalars().all()
 
 
 @pytest.mark.tenancy
@@ -169,9 +169,11 @@ def test_switching_tenants_inside_a_transaction_raises(bound):
     with Sm() as session:
         with tenant_context(ACME):
             session.execute(select(Note.body)).scalars().all()
-        with tenant_context(GLOBEX):
-            with pytest.raises(TenantError, match="belongs to exactly one tenant"):
-                session.execute(select(Note.body)).scalars().all()
+        with (
+            tenant_context(GLOBEX),
+            pytest.raises(TenantError, match="belongs to exactly one tenant"),
+        ):
+            session.execute(select(Note.body)).scalars().all()
 
 
 @pytest.mark.tenancy

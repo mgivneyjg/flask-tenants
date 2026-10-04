@@ -23,7 +23,9 @@ from typing import Any
 try:
     import click
 except ImportError as exc:  # pragma: no cover
-    raise SystemExit("The flask-tenants CLI needs the 'cli' extra: pip install flask-tenants[cli]") from exc
+    raise SystemExit(
+        "The flask-tenants CLI needs the 'cli' extra: pip install flask-tenants[cli]"
+    ) from exc
 
 from .migrations import MigrationRunner
 from .models import TenantState
@@ -106,7 +108,8 @@ def status(ctx: click.Context) -> None:
         marker = {"current": "  ok", "behind": "BEHIND", "unmigrated": " NONE"}[row.state]
         if row.state != "current":
             behind += 1
-        click.echo(f"{marker}  {str(row.tenant_key):<{width}}  {row.schema_name}  {row.current or '-'}")
+        current = row.current or "-"
+        click.echo(f"{marker}  {row.tenant_key!s:<{width}}  {row.schema_name}  {current}")
 
     click.echo()
     click.echo(f"{len(rows)} tenants, {behind} not at head")
@@ -226,12 +229,10 @@ def run_for_each(ctx: click.Context, callable_path: str, workers: int, stop_on_e
     everywhere. Not a reporting tool; see the docs on analytics.
     """
     mgr = ctx.obj["manager"]
-    fn = _import(callable_path)   # imported, never called here
+    fn = _import(callable_path)  # imported, never called here
     if not callable(fn):
         raise click.ClickException(f"{callable_path!r} is not callable")
-    result = for_each_tenant(
-        mgr, fn, continue_on_error=not stop_on_error, max_workers=workers
-    )
+    result = for_each_tenant(mgr, fn, continue_on_error=not stop_on_error, max_workers=workers)
     for outcome in result.failed:
         click.echo(f"FAILED {outcome.tenant_key}: {outcome.error}", err=True)
     click.echo(result.summary())

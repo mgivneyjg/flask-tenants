@@ -48,8 +48,9 @@ the other 399 need to ship tonight.
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Iterable, Sequence
+from typing import TYPE_CHECKING, Any
 
 from alembic import command
 from alembic.config import Config
@@ -145,7 +146,7 @@ class MigrationRunner:
 
     def __init__(
         self,
-        manager: "TenantManager",
+        manager: TenantManager,
         *,
         shared_config: str | Config | None = None,
         tenant_config: str | Config | None = None,
@@ -266,9 +267,7 @@ class MigrationRunner:
             if exists is None:
                 return None
             conn.exec_driver_sql(f"SET LOCAL search_path TO {quote_identifier(schema_name)}")
-            context = MigrationContext.configure(
-                conn, opts={"version_table_schema": schema_name}
-            )
+            context = MigrationContext.configure(conn, opts={"version_table_schema": schema_name})
             return context.get_current_revision()
 
     def head_revision(self, *, tenant: bool = True) -> str | None:
@@ -372,18 +371,16 @@ def run_migrations_online(context: Any, target_metadata: Any, config: Any) -> No
         with context.begin_transaction():
             # This is what actually places the DDL, not the translate map --
             # see "Writing tenant migrations" above.
-            connection.exec_driver_sql(
-                f"SET LOCAL search_path TO {quote_identifier(schema)}"
-            )
+            connection.exec_driver_sql(f"SET LOCAL search_path TO {quote_identifier(schema)}")
             context.run_migrations()
 
 
 __all__ = [
+    "VERSION_TABLE",
     "MigrationRun",
-    "strip_tenant_schema",
     "MigrationRunner",
     "TenantMigrationResult",
     "TenantStatus",
-    "VERSION_TABLE",
     "run_migrations_online",
+    "strip_tenant_schema",
 ]

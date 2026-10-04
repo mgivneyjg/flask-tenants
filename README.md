@@ -22,20 +22,41 @@ with tenant_context(acme):
 - **Leak detection ships with the library.** The mechanism is only as good as
   the proof it works.
 
-## Documentation
+## Development
 
-The full documentation site lives in [`docs/`](docs/). Build it locally:
+Everything runs through the Makefile, which drives `uv`:
 
 ```bash
-pip install "flask-tenants[docs]"
-mkdocs serve
+make dev            # create the venv, install with all dev extras
+make db-up          # start the test PostgreSQL (docker or podman)
+make test           # run the suite
+make docs-serve     # docs with live reload
+make help           # every target
 ```
 
-- **[Set up a new Flask app](docs/getting-started.md)** — the complete walkthrough
-- **[Celery and background workers](docs/workers.md)** — the part people get wrong
-- **[Testing](docs/testing.md)** — the fixtures that prove isolation holds
-- **[Limits and known gaps](docs/limits.md)** — read before production
-- **[Why it works this way](docs/design.md)** — the decisions, and what was rejected
+## Releasing
+
+```bash
+make bump V=0.2.0   # one file holds the version
+make release        # lint, test, build, validate, smoke-test the wheel
+make publish-test   # upload to TestPyPI and verify
+make publish        # upload to PyPI (confirms first)
+make tag            # tag and push
+```
+
+Publishing reads `UV_PUBLISH_TOKEN` from the environment. PyPI and TestPyPI
+are separate accounts with separate tokens.
+
+## Documentation
+
+Markdown sources are in [`docsrc/`](docsrc/); `make docs` builds them into
+`docs/`, which GitHub Pages serves.
+
+- **[Set up a new Flask app](docsrc/getting-started.md)** — the complete walkthrough
+- **[Celery and background workers](docsrc/workers.md)** — the part people get wrong
+- **[Testing](docsrc/testing.md)** — the fixtures that prove isolation holds
+- **[Limits and known gaps](docsrc/limits.md)** — read before production
+- **[Why it works this way](docsrc/design.md)** — the decisions, and what was rejected
 
 A runnable example is in [`examples/minimal/`](examples/minimal/).
 
@@ -44,12 +65,11 @@ A runnable example is in [`examples/minimal/`](examples/minimal/).
 Tenancy tests need a real PostgreSQL — SQLite has no schemas.
 
 ```bash
-docker run -d --name ft-pg -e POSTGRES_USER=tenants -e POSTGRES_PASSWORD=tenants \
-  -e POSTGRES_DB=tenants -p 5432:5432 postgres:16-alpine
-
-export FLASK_TENANTS_TEST_DATABASE_URL=postgresql+psycopg://tenants:tenants@localhost/tenants
-pytest
+make db-up test
 ```
+
+`make test` fails rather than skips when no database is reachable — a run that
+skipped every tenancy test looks exactly like one that passed.
 
 ## License
 

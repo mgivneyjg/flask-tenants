@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 
 import pytest
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
 from flask_tenants import (
@@ -39,15 +39,15 @@ class FakeRequest:
 @pytest.mark.parametrize(
     "bad",
     [
-        "public",                       # reserved: would point DDL at shared tables
+        "public",  # reserved: would point DDL at shared tables
         "pg_catalog",
         "pg_anything",
         'tenant"; DROP SCHEMA public--',
         "tenant acme",
-        "Tenant",                       # uppercase would need quoting to round-trip
+        "Tenant",  # uppercase would need quoting to round-trip
         "1tenant",
         "",
-        "t" * 64,                       # exceeds NAMEDATALEN - 1
+        "t" * 64,  # exceeds NAMEDATALEN - 1
     ],
 )
 def test_unsafe_schema_names_are_rejected(bad):

@@ -76,9 +76,11 @@ def test_probe_catches_a_hardcoded_cross_tenant_read(probe, engine):
 
     def read(tenant):
         with engine.connect() as conn:
-            return conn.execute(
-                text(f'SELECT body FROM "{B.schema_name}".leak_records')
-            ).scalars().all()
+            return (
+                conn.execute(text(f'SELECT body FROM "{B.schema_name}".leak_records'))
+                .scalars()
+                .all()
+            )
 
     with pytest.raises(TenantLeakError, match="belongs to tenant"):
         assert_no_leak(probe, read)
@@ -90,10 +92,12 @@ def test_probe_catches_a_tenant_seeing_nothing_of_its_own(probe, engine):
 
     def read(tenant):
         with engine.connect() as conn:
-            conn.execute(text('CREATE SCHEMA IF NOT EXISTS leak_decoy'))
+            conn.execute(text("CREATE SCHEMA IF NOT EXISTS leak_decoy"))
             conn.execute(
-                text("CREATE TABLE IF NOT EXISTS leak_decoy.leak_records "
-                     "(id serial primary key, body varchar(80))")
+                text(
+                    "CREATE TABLE IF NOT EXISTS leak_decoy.leak_records "
+                    "(id serial primary key, body varchar(80))"
+                )
             )
             conn.execute(text("INSERT INTO leak_decoy.leak_records (body) VALUES ('unrelated')"))
             rows = conn.execute(text("SELECT body FROM leak_decoy.leak_records")).scalars().all()

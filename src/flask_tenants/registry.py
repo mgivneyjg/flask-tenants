@@ -11,7 +11,8 @@ model using :class:`~flask_tenants.models.TenantMixin` in the shared schema.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Iterable, Sequence
+from collections.abc import Iterable, Sequence
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import select
 
@@ -74,7 +75,9 @@ class StaticRegistry(TenantRegistry):
     configuration rather than data.
     """
 
-    def __init__(self, tenants: Iterable[TenantProtocol] = (), domains: dict[str, Any] | None = None):
+    def __init__(
+        self, tenants: Iterable[TenantProtocol] = (), domains: dict[str, Any] | None = None
+    ):
         self._tenants: dict[Any, TenantProtocol] = {t.tenant_key: t for t in tenants}
         self._domains: dict[str, Any] = dict(domains or {})
 
@@ -118,7 +121,7 @@ class SQLAlchemyRegistry(TenantRegistry):
 
     def __init__(
         self,
-        session_factory: "sessionmaker | Any",
+        session_factory: sessionmaker | Any,
         tenant_model: type,
         *,
         domain_model: type | None = None,
@@ -200,7 +203,7 @@ class SQLAlchemyRegistry(TenantRegistry):
             session.commit()
         return True
 
-    def _session(self) -> "Session":
+    def _session(self) -> Session:
         return self.session_factory()
 
 

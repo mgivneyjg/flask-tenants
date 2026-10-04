@@ -18,11 +18,12 @@ object serves a web request, a Celery task, a CLI command and a test.
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable, Iterator, Sequence
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any, Callable, Iterator, Sequence
+from typing import TYPE_CHECKING, Any
 
 from .binding import SchemaBinder
-from .context import Binding, bind, current_binding, public_schema, tenant_context
+from .context import Binding, current_binding, public_schema, tenant_context
 from .errors import TenantNotReadyError, UnknownTenantError
 from .models import Bases, TenantProtocol, TenantState, validate_model_layout
 from .registry import TenantRegistry
@@ -64,8 +65,8 @@ class TenantManager:
     def __init__(
         self,
         *,
-        engine: "Engine",
-        session_factory: "sessionmaker | Any",
+        engine: Engine,
+        session_factory: sessionmaker | Any,
         bases: Bases,
         registry: TenantRegistry,
         resolvers: Sequence[TenantResolver | Callable[[Any], Any | None]] = (),
@@ -179,7 +180,7 @@ class TenantManager:
         if not state.is_servable:
             raise TenantNotReadyError(tenant.tenant_key, state.value)
 
-    def session(self) -> "Session":
+    def session(self) -> Session:
         """A new session from the configured factory."""
         return self.session_factory()
 
@@ -192,7 +193,10 @@ class TenantManager:
                 yield conn
             return
         tenant = self._coerce(tenant_or_key)
-        with tenant_context(tenant) as binding, self.binder.connection(self.engine, binding) as conn:
+        with (
+            tenant_context(tenant) as binding,
+            self.binder.connection(self.engine, binding) as conn,
+        ):
             yield conn
 
     def __repr__(self) -> str:  # pragma: no cover

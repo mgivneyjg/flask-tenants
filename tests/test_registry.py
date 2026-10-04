@@ -9,7 +9,7 @@ registry looks up by integer primary key, and PostgreSQL answers with
 from __future__ import annotations
 
 import pytest
-from sqlalchemy import ForeignKey, String, select
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, sessionmaker
 
 from flask_tenants import (
@@ -85,7 +85,7 @@ def test_domain_lookup_joins_on_the_primary_key(registry):
     """The domain table points at the id, even when routing is by slug."""
     tenant = registry.get_by_domain("globex.example.test")
     assert tenant is not None and tenant.tenant_key == "globex"
-    assert registry.get_by_domain("GLOBEX.EXAMPLE.TEST") is not None   # case-insensitive
+    assert registry.get_by_domain("GLOBEX.EXAMPLE.TEST") is not None  # case-insensitive
     assert registry.get_by_domain("nope.example.test") is None
 
 

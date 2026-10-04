@@ -28,8 +28,10 @@ import enum
 from dataclasses import dataclass
 from typing import Any, ClassVar, Protocol, runtime_checkable
 
-from sqlalchemy import Enum as SAEnum, MetaData, String, inspect
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry as sa_registry
+from sqlalchemy import Enum as SAEnum
+from sqlalchemy import MetaData, String, inspect
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import registry as sa_registry
 
 from .errors import ModelLayoutError
 from .schema import TENANT_SCHEMA_TOKEN, derive_schema_name
@@ -99,7 +101,7 @@ class SimpleTenant:
     state: TenantState = TenantState.ACTIVE
 
     @classmethod
-    def for_id(cls, tenant_id: Any, *, prefix: str = "tenant_") -> "SimpleTenant":
+    def for_id(cls, tenant_id: Any, *, prefix: str = "tenant_") -> SimpleTenant:
         return cls(tenant_key=tenant_id, schema_name=derive_schema_name(tenant_id, prefix=prefix))
 
 
@@ -380,8 +382,8 @@ TenantBase = _default_bases.tenant
 default_bases = _default_bases
 
 __all__ = [
-    "Bases",
     "DEFAULT_NAMING_CONVENTION",
+    "Bases",
     "DomainMixin",
     "SharedBase",
     "SimpleTenant",

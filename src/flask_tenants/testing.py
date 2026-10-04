@@ -20,17 +20,18 @@ belongs in CI on every commit.
 from __future__ import annotations
 
 import os
+from collections.abc import Callable, Iterator, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, Callable, Iterator, Sequence
+from typing import Any
 
 import pytest
 from sqlalchemy import text
 from sqlalchemy.orm import Session, sessionmaker
 
 from .binding import SchemaBinder, no_tenant_attempt_count
-from .context import current_tenant_key, tenant_context
-from .errors import NoActiveTenantError, TenantLeakError
+from .context import tenant_context
+from .errors import TenantLeakError
 from .models import Bases, SimpleTenant, TenantProtocol
 from .schema import quote_identifier
 
@@ -55,7 +56,8 @@ def create_test_schemas(engine: Any, bases: Bases, tenants: Sequence[TenantProto
         bases.shared_metadata.create_all(conn)
         token = bases.tenant_metadata.schema or "tenant"
         for tenant in tenants:
-            conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {quote_identifier(tenant.schema_name)}"))
+            schema = quote_identifier(tenant.schema_name)
+            conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema}"))
             scoped = conn.execution_options(schema_translate_map={token: tenant.schema_name})
             bases.tenant_metadata.create_all(scoped)
 
@@ -206,7 +208,9 @@ def tenant_engine(tenant_database_url: str):
     try:
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
-    except Exception as exc:  # pragma: no cover
+    except Exception as exc:  # noqa: BLE001 - any connection failure should skip  # pragma: no cover
+        # Driver, network and auth failures all surface differently; the useful
+        # behaviour is identical for all of them -- skip with the reason shown.
         pytest.skip(f"PostgreSQL not reachable at {tenant_database_url}: {exc}")
     yield engine
     engine.dispose()

@@ -20,9 +20,10 @@ and 400 concurrent tenants would exhaust the single shared pool.
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable, Iterable, Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Sequence, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from .models import TenantProtocol, TenantState
 
@@ -81,7 +82,7 @@ class BulkResult:
 
 
 def for_each_tenant(
-    manager: "TenantManager",
+    manager: TenantManager,
     fn: Callable[[TenantProtocol], T],
     *,
     tenants: Iterable[TenantProtocol] | None = None,
@@ -138,7 +139,7 @@ def for_each_tenant(
 
 
 def _parallel(
-    manager: "TenantManager",
+    manager: TenantManager,
     fn: Callable[[TenantProtocol], Any],
     targets: list[TenantProtocol],
     max_workers: int,

@@ -1,8 +1,15 @@
 site_name: flask-tenants
 site_description: Schema-per-tenant multi-tenancy for Flask and SQLAlchemy, on PostgreSQL.
-site_url: https://example.com/flask-tenants/
-repo_url: https://github.com/mattgivney/flask-tenants
+site_url: https://mgivneyjg.github.io/flask-tenants/
+repo_url: https://github.com/mgivneyjg/flask-tenants
 edit_uri: ""
+
+# Sources live in docsrc/; the build output goes to docs/ so GitHub Pages can
+# serve it from the "/docs folder on main" setting. Keep these distinct --
+# pointing both at the same directory makes `mkdocs build` clean away its own
+# sources.
+docs_dir: docsrc
+site_dir: docs
 
 theme:
   name: material
