@@ -13,7 +13,7 @@ dist/
 htmlcov/
 .env
 .DS_Store
-
+.site/
 # NOTE: docs/ is the BUILT documentation site and is committed on purpose --
 # GitHub Pages serves it from the "/docs folder on main" setting. The markdown
 # sources live in docsrc/. Do not ignore docs/.
